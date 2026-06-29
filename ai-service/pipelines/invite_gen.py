@@ -5,8 +5,12 @@ from dotenv import load_dotenv
 # Load environment variables (like API keys) from the .env file
 load_dotenv()
 
-# We initialize the OpenAI client. It will automatically look for the OPENAI_API_KEY environment variable.
-client = OpenAI()
+# We initialize the OpenAI client, but we point it to Mistral's API instead!
+# Mistral uses the exact same API format as OpenAI, which makes switching incredibly easy.
+client = OpenAI(
+    api_key=os.getenv("MISTRAL_API_KEY"),
+    base_url="https://api.mistral.ai/v1"
+)
 
 def generate_invite_message(candidate_name, sport, proposed_time, top_factors):
     """
@@ -27,9 +31,9 @@ def generate_invite_message(candidate_name, sport, proposed_time, top_factors):
     """
 
     try:
-        # Call the OpenAI API (we use a fast/cheap model like gpt-4o-mini or gpt-3.5-turbo)
+        # Call the Mistral API using the fast 'mistral-small-latest' model
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="mistral-small-latest",
             messages=[
                 {"role": "system", "content": "You are a friendly matchmaker."},
                 {"role": "user", "content": prompt}

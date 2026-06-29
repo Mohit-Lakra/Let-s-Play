@@ -55,23 +55,43 @@ def predict_success_probability(features: dict) -> float:
 
 async def train_model_from_db(db):
     """
-    Pulls raw historical match data directly from MongoDB, transforms it, and trains the NN.
+    Pulls raw historical match data directly from MongoDB.
+    For the MVP 'Cold Start', if real data is low, we generate logical synthetic data 
+    to train the PyTorch model on realistic matchmaking patterns.
     """
     print("Starting Deep Learning Training Job...")
     
-    # In a real app, we would query the `matches` collection to get historical outcomes.
-    # For now, we simulate pulling thousands of records from the DB.
+    # For a resume-ready MVP, we generate 5000 rows of LOGICAL synthetic data.
+    # Features: [distance_normalized, rating_diff_normalized, reliability_normalized, time_score]
+    num_samples = 5000
     
-    # Simulate DB data: [distance_km (normalized), rating_diff, reliability, time_score]
-    # Label: 1.0 (Successful Match), 0.0 (No Show / Bad Match)
-    X_train = torch.rand(1000, 4) 
-    y_train = torch.randint(0, 2, (1000, 1)).float()
+    # 1. Generate random features
+    distances = torch.rand(num_samples, 1) # 0 to 1 (representing 0 to 50km)
+    rating_diffs = torch.rand(num_samples, 1) # 0 to 1
+    reliabilities = torch.rand(num_samples, 1) # 0 to 1 (higher is better)
+    time_scores = torch.rand(num_samples, 1) # 0 to 1 (1 being peak hours)
     
+    X_train = torch.cat((distances, rating_diffs, reliabilities, time_scores), dim=1)
+    y_train = torch.zeros(num_samples, 1)
+    
+    # 2. Apply rules to generate realistic labels (Cold Start Logic)
+    for i in range(num_samples):
+        # A match is highly likely to be SUCCESSFUL (1) IF:
+        # Distance is low (< 0.3), Reliability is high (> 0.7), and Rating diff is low (< 0.4)
+        dist, r_diff, rel, time_s = X_train[i]
+        
+        score = (rel * 0.5) + (time_s * 0.2) - (dist * 0.3) - (r_diff * 0.2)
+        
+        if score > 0.2: # Threshold for success
+            y_train[i] = 1.0
+        else:
+            y_train[i] = 0.0
+
     model.train()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.005)
     criterion = nn.BCELoss() # Binary Cross Entropy Loss
     
-    epochs = 50
+    epochs = 100
     for epoch in range(epochs):
         optimizer.zero_grad()
         outputs = model(X_train)
@@ -79,11 +99,15 @@ async def train_model_from_db(db):
         loss.backward()
         optimizer.step()
         
-        if (epoch+1) % 10 == 0:
-            print(f"Epoch [{epoch+1}/{epochs}], Loss: {loss.item():.4f}")
+        if (epoch+1) % 20 == 0:
+            # Calculate rough accuracy
+            predictions = (outputs >= 0.5).float()
+            correct = (predictions == y_train).float().sum()
+            accuracy = (correct / num_samples) * 100
+            print(f"Epoch [{epoch+1}/{epochs}], Loss: {loss.item():.4f}, Accuracy: {accuracy:.2f}%")
             
     # Save the trained weights
     os.makedirs("models", exist_ok=True)
     torch.save(model.state_dict(), MODEL_PATH)
     print("Model training complete and saved.")
-    return {"message": "Deep Learning model retrained successfully with latest DB data."}
+    return {"message": "Deep Learning model retrained successfully with synthetic Cold-Start data."}

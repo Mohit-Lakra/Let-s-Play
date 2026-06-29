@@ -2,7 +2,11 @@ import os
 from openai import OpenAI
 from database import get_db
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Connect to Mistral's API using the OpenAI library
+client = OpenAI(
+    api_key=os.getenv("MISTRAL_API_KEY"),
+    base_url="https://api.mistral.ai/v1"
+)
 
 async def generate_scouting_report(candidate_id: str) -> str:
     """
@@ -46,7 +50,7 @@ async def generate_scouting_report(candidate_id: str) -> str:
 
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="mistral-small-latest",
             messages=[
                 {"role": "system", "content": "You are a professional scout analyst."},
                 {"role": "user", "content": prompt}

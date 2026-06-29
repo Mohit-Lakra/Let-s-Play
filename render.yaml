@@ -1,0 +1,42 @@
+services:
+  # 1. The Node.js Express Server
+  - type: web
+    name: lets-play-node-server
+    env: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false # You will paste your MongoDB URI in the Render dashboard
+      - key: JWT_SECRET
+        generateValue: true # Render will auto-generate a secure random string!
+      - key: INTERNAL_API_KEY
+        generateValue: true # Render will auto-generate a secure key for Python communication
+      - key: AI_SERVICE_URL
+        fromService:
+          type: web
+          name: lets-play-ai-service
+          envVarKey: RENDER_EXTERNAL_URL
+
+  # 2. The Python FastAPI Service
+  - type: web
+    name: lets-play-ai-service
+    env: python
+    rootDir: ai-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: MISTRAL_API_KEY
+        sync: false # You will paste your Mistral API Key in the Render dashboard
+      - key: MONGO_URI
+        sync: false
+      - key: INTERNAL_API_KEY
+        fromService:
+          type: web
+          name: lets-play-node-server
+          envVarKey: INTERNAL_API_KEY
