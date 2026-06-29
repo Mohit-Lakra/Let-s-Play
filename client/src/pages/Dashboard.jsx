@@ -12,6 +12,8 @@ function Dashboard() {
 
   const userId = localStorage.getItem('userId');
 
+  const [userLocation, setUserLocation] = useState(null);
+
   useEffect(() => {
     // Connect to Socket.io server
     const newSocket = io('https://lets-play-node-server.onrender.com');
@@ -38,6 +40,20 @@ function Dashboard() {
         alert("Match Confirmed! Get ready to play.");
     });
 
+    // Request Location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const coords = [position.coords.longitude, position.coords.latitude];
+          setUserLocation(coords);
+          // Update profile with location silently
+          api.post('/profile', { preferredLocation: coords }).catch(e => console.error(e));
+        },
+        (error) => console.error("Error getting location:", error),
+        { enableHighAccuracy: true }
+      );
+    }
+
     return () => newSocket.close();
   }, [userId]);
 
@@ -46,10 +62,13 @@ function Dashboard() {
     setIsSearching(true);
     setCandidates([]);
     
+    // Default to New Delhi if user blocked location (just for demo purposes)
+    const locationToUse = userLocation || [77.2090, 28.6139];
+    
     try {
       await api.post('/requests', {
         sport,
-        location: [-122.4194, 37.7749], // Dummy SF location
+        location: locationToUse,
         timeSlot: {
             start: new Date(Date.now() + 86400000), // Tomorrow
             end: new Date(Date.now() + 93600000)

@@ -1,6 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Layout from './components/Layout';
+import MapFeature from './pages/MapFeature';
 import './index.css';
 
 function App() {
@@ -8,19 +11,16 @@ function App() {
 
   return (
     <Router>
-      <div className="app-container">
-        <h1 className="gradient-text" style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          Let's Play
-        </h1>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route 
-            path="/dashboard" 
-            element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} 
-          />
-          <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
-        </Routes>
-      </div>
+      <Routes>
+        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Landing />} />
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />
+        
+        {/* Protected Routes wrapped in Layout */}
+        <Route element={isAuthenticated ? <Layout /> : <Navigate to="/login" />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/map" element={<MapFeature />} />
+        </Route>
+      </Routes>
     </Router>
   );
 }

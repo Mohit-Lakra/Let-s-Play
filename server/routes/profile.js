@@ -51,4 +51,33 @@ router.post('/', authenticate, async (req, res) => {
   }
 });
 
+// GET /api/profile/nearby
+// Fetch players near the user
+router.get('/nearby', authenticate, async (req, res) => {
+  try {
+    const { lng, lat, distance = 15000 } = req.query; // default 15km
+    
+    if (!lng || !lat) {
+      return res.status(400).json({ error: 'Longitude and latitude required' });
+    }
+
+    const players = await PlayerProfile.find({
+      preferredLocation: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [parseFloat(lng), parseFloat(lat)]
+          },
+          $maxDistance: parseInt(distance)
+        }
+      }
+    }).populate('userId', 'name email').limit(50); // limit to 50 players
+
+    res.status(200).json(players);
+  } catch (error) {
+    console.error('Error fetching nearby players:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;

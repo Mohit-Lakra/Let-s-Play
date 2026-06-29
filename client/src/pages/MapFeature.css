@@ -1,0 +1,53 @@
+.map-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 1.5rem;
+}
+
+.map-header {
+  padding: 1.5rem;
+  background: rgba(30, 41, 59, 0.5);
+}
+
+.map-header h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  color: #f8fafc;
+}
+
+.map-header p {
+  margin: 0;
+  color: #94a3b8;
+}
+
+.map-wrapper {
+  flex: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  min-height: 400px;
+  background: rgba(30, 41, 59, 0.5);
+  padding: 10px;
+}
+
+.loading-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #6366f1;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.map-popup {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #333; /* Leaflet popups usually have white backgrounds */
+}
+
+/* Ensure Leaflet container plays nice with Flexbox */
+.leaflet-container {
+  z-index: 1;
+}
