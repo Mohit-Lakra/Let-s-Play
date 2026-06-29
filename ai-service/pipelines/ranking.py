@@ -32,7 +32,7 @@ def rank_candidates(requester, candidates):
         
         # 2. Rating Closeness Score (0 to 100)
         # 100 means identical rating, drops as the difference grows
-        rating_closeness = 100 - abs(requester['overall'] - candidate['overall'])
+        rating_closeness = 100 - abs(requester['overall'] - candidate['rating_overall'])
         
         # 3. Availability Score (0 to 100)
         # availability_overlap is a fraction (0.0 to 1.0)
