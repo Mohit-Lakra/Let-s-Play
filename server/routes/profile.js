@@ -55,13 +55,13 @@ router.post('/', authenticate, async (req, res) => {
 // Fetch players near the user
 router.get('/nearby', authenticate, async (req, res) => {
   try {
-    const { lng, lat, distance = 50000 } = req.query; // default 50km
+    const { lng, lat, distance = 50000, sport } = req.query; // default 50km
     
     if (!lng || !lat) {
       return res.status(400).json({ error: 'Longitude and latitude required' });
     }
 
-    const players = await PlayerProfile.find({
+    const query = {
       preferredLocation: {
         $near: {
           $geometry: {
@@ -71,7 +71,13 @@ router.get('/nearby', authenticate, async (req, res) => {
           $maxDistance: parseInt(distance)
         }
       }
-    }).populate('userId', 'name email').limit(50); // limit to 50 players
+    };
+
+    if (sport && sport !== 'all') {
+      query.sports = sport;
+    }
+
+    const players = await PlayerProfile.find(query).populate('userId', 'name email').limit(50); // limit to 50 players
 
     res.status(200).json(players);
   } catch (error) {

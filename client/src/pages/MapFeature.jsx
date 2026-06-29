@@ -27,6 +27,7 @@ const MapFeature = () => {
   const [players, setPlayers] = useState([]);
   const [userLoc, setUserLoc] = useState([28.6139, 77.2090]); // Default Delhi
   const [loading, setLoading] = useState(true);
+  const [selectedSport, setSelectedSport] = useState('all');
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -35,23 +36,22 @@ const MapFeature = () => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
           setUserLoc([lat, lng]);
-          fetchNearbyPlayers(lng, lat);
+          fetchNearbyPlayers(lng, lat, selectedSport);
         },
         (error) => {
           console.error("Error getting location:", error);
-          // Fallback to default
-          fetchNearbyPlayers(77.2090, 28.6139);
+          fetchNearbyPlayers(77.2090, 28.6139, selectedSport);
         }
       );
     } else {
-      fetchNearbyPlayers(77.2090, 28.6139);
+      fetchNearbyPlayers(77.2090, 28.6139, selectedSport);
     }
-  }, []);
+  }, [selectedSport]); // Refetch when sport changes
 
-  const fetchNearbyPlayers = async (lng, lat) => {
+  const fetchNearbyPlayers = async (lng, lat, sport) => {
     try {
       setLoading(true);
-      const response = await api.get(`/profile/nearby?lng=${lng}&lat=${lat}`);
+      const response = await api.get(`/profile/nearby?lng=${lng}&lat=${lat}&sport=${sport}`);
       setPlayers(response.data);
     } catch (err) {
       console.error('Error fetching players:', err);
@@ -62,9 +62,25 @@ const MapFeature = () => {
 
   return (
     <div className="map-container">
-      <div className="map-header glass-card">
-        <h2>Players Near You</h2>
-        <p>Found {players.length} players ready for a match.</p>
+      <div className="map-header glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h2>Players Near You</h2>
+          <p>Found {players.length} players ready for a match.</p>
+        </div>
+        <div style={{ width: '200px' }}>
+          <select 
+            value={selectedSport} 
+            onChange={(e) => setSelectedSport(e.target.value)}
+            style={{ margin: 0 }}
+          >
+            <option value="all">All Sports</option>
+            <option value="football">Football</option>
+            <option value="cricket">Cricket</option>
+            <option value="badminton">Badminton</option>
+            <option value="tennis">Tennis</option>
+            <option value="basketball">Basketball</option>
+          </select>
+        </div>
       </div>
 
       <div className="map-wrapper glass-card">

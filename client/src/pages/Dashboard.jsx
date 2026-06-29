@@ -66,7 +66,7 @@ function Dashboard() {
     const locationToUse = userLocation || [77.2090, 28.6139];
     
     try {
-      await api.post('/requests', {
+      const response = await api.post('/requests', {
         sport,
         location: locationToUse,
         timeSlot: {
@@ -74,7 +74,12 @@ function Dashboard() {
             end: new Date(Date.now() + 93600000)
         }
       });
-      // The server will respond via Socket.io when AI ranking is done
+      
+      if (response.data.message === "Request created, but no nearby candidates found") {
+        setIsSearching(false);
+        alert(`No nearby players found for ${sport}. Try another sport or wait for others to join.`);
+      }
+      // Otherwise, The server will respond via Socket.io when AI ranking is done
     } catch (err) {
       console.error(err);
       setIsSearching(false);
