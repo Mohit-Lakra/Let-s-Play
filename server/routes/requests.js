@@ -40,8 +40,8 @@ router.post('/', authenticate, async (req, res) => {
         $geoNear: {
           near: { type: "Point", coordinates: location },
           distanceField: "dist.calculated",
-          maxDistance: 15000, // 15 km in meters
-          query: { sport: sport }, // Only match same sport (assuming sport array is populated)
+          maxDistance: 50000, // 50 km in meters
+          query: { sports: sport }, // Only match same sport (field name is 'sports' in DB)
           spherical: true
         }
       }

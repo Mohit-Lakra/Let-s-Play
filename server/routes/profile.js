@@ -55,7 +55,7 @@ router.post('/', authenticate, async (req, res) => {
 // Fetch players near the user
 router.get('/nearby', authenticate, async (req, res) => {
   try {
-    const { lng, lat, distance = 15000 } = req.query; // default 15km
+    const { lng, lat, distance = 50000 } = req.query; // default 50km
     
     if (!lng || !lat) {
       return res.status(400).json({ error: 'Longitude and latitude required' });
